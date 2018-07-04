@@ -1,6 +1,7 @@
 import math
 from enum import Enum
 
+
 class MappingMethodology(Enum):
     NAIVE_ROW_MAJOR = 1  # e.g. ABCD; EFGH; IJKL; ...
     GRAPH_MAPPER = 2  # invokes graph_mapper library
@@ -77,7 +78,10 @@ def _read_qubits(qasmf_filename):
     with open(qasmf_filename, 'r') as fp:
         for line in fp:
             if _is_unary(line):
-                qubit = line.split()[1]
+                if line[:2] in ['Rx', 'Ry', 'Rz']:
+                    qubit = line.split()[1].split(',')[0]
+                else:
+                    qubit = line.split()[1]
                 if qubit not in qubits:
                     qubits.append(qubit)
             else:  # CNOT
@@ -90,17 +94,17 @@ def _read_qubits(qasmf_filename):
 
 
 def _is_unary(instruction):
-    if ',' in instruction:
-        assert instruction.startswith('CNOT'), \
-            'Only supported multi-qubit operation is CNOT. Received %s' % instruction
-        return False
-    return True
+    return not instruction.startswith('CNOT')
 
 
 def _get_transformed_unary_instruction(line, qubit_to_point):
     # rename the qubit in instruction to qubit_x_y:
-    operator, qubit = line.split()
-    return '%s %s\n' % (operator, qubit_to_point[qubit].coordinate_qubit())
+    if line[:2] in ['Rx', 'Ry', 'Rz']:
+        operator, (qubit, angle) = line.split()[0], line.split()[1].split(',')
+        return '%s %s,%s\n' % (operator, qubit_to_point[qubit].coordinate_qubit(), angle)
+    else:
+        operator, qubit = line.split()
+        return '%s %s\n' % (operator, qubit_to_point[qubit].coordinate_qubit())
 
 
 def _get_transformed_CNOT_instruction(line, qubit_to_point):
