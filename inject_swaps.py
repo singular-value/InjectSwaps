@@ -133,16 +133,19 @@ def _swap_control_towards_target(control, target, qubit_to_point):
 
     """
     control_point, target_point = qubit_to_point[control], qubit_to_point[target]
+    point_to_qubit = {v: k for k, v in qubit_to_point.items()}  # inefficient but fine
 
     # perform swap in the direction of greater imbalance:
     if abs(control_point.x - target_point.x) >= abs(control_point.y - target_point.y):
         delta = -1 if control_point.x > target_point.x else 1
         neighbor_point = Point(control_point.x + delta, control_point.y)
+        if neighbor_point not in point_to_qubit:  # handle last row, which may be unfilled
+            delta = -1 if control_point.y > target_point.y else 1
+            neighbor_point = Point(control_point.x, control_point.y + delta)
     else:
         delta = -1 if control_point.y > target_point.y else 1
         neighbor_point = Point(control_point.x, control_point.y + delta)
 
-    point_to_qubit = {v: k for k, v in qubit_to_point.items()}  # inefficient but fine
     neighbor = point_to_qubit[neighbor_point]
 
     qubit_to_point[control] = neighbor_point 
