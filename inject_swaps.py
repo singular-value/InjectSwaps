@@ -45,7 +45,7 @@ def get_instructions_with_swaps(qasmf_filename,
 
 def _get_initial_qubit_to_point(qasmf_filename, mapping_methodology):
     qubits = _read_qubits(qasmf_filename)
-    dim = math.ceil(len(qubits) ** 0.5)
+    dim = int(math.ceil(len(qubits) ** 0.5))
     qubit_to_point = {}
 
     if mapping_methodology == MappingMethodology.NAIVE_ROW_MAJOR:
